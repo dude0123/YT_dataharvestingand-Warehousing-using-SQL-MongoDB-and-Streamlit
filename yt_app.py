@@ -196,7 +196,7 @@ def channel_names():
 if selected == "Home":
     # Title Image
     st.title(':red[Youtube Data Harvesting]')
-    st.markdown("## :blue[Overview] : Retrieving the Youtube channels data from the Google API, storing it in a MongoDB as data lake, migrating and transforming data into a SQL database,then querying the data and displaying it in the Streamlit app.")
+    st.markdown("## :blue[Overview] : Retrieving the Youtube channels data from the Google API, storing it in a MongoDB as data lake, migrating and transforming data into a SQL database,then querying the data and displaying it in the Streamlit app. Project done by Joseph. F. Thomas")
     
 
 
@@ -314,7 +314,7 @@ if selected == "View":
         
     elif questions == '2. Which channels have the most number of videos, and how many videos do they have?':
         mycursor.execute("""SELECT channel_name 
-        AS Channel_Name, total_videos AS Total_Videos
+        AS Channel_Name, total_vid AS Total_Videos
                             FROM channels
                             ORDER BY total_videos DESC""")
         df = pd.DataFrame(mycursor.fetchall(),columns=mycursor.column_names)
@@ -330,7 +330,7 @@ if selected == "View":
         st.plotly_chart(fig,use_container_width=True)
         
     elif questions == '3. What are the top 10 most viewed videos and their respective channels?':
-        mycursor.execute("""SELECT channel_name AS Channel_Name, title AS Video_Title, views AS Views 
+        mycursor.execute("""SELECT channel_name AS Channel_Name, title AS Video_Title, view_count AS Views 
                             FROM videos
                             ORDER BY views DESC
                             LIMIT 10""")
@@ -356,9 +356,9 @@ if selected == "View":
         st.write(df)
           
     elif questions == '5. Which videos have the highest number of likes, and what are their corresponding channel names?':
-        mycursor.execute("""SELECT channel_name AS Channel_Name,title AS Title,likes AS Likes_Count 
+        mycursor.execute("""SELECT channel_name AS Channel_Name,title AS Title,like_count AS Likes_Count 
                             FROM videos
-                            ORDER BY likes DESC
+                            ORDER BY likes_count DESC
                             LIMIT 10""")
         df = pd.DataFrame(mycursor.fetchall(),columns=mycursor.column_names)
         st.write(df)
@@ -372,14 +372,14 @@ if selected == "View":
         st.plotly_chart(fig,use_container_width=True)
         
     elif questions == '6. What is the total number of likes and dislikes for each video, and what are their corresponding video names?':
-        mycursor.execute("""SELECT title AS Title, likes AS Likes_Count
+        mycursor.execute("""SELECT title AS Title, like_count AS Likes_Count
                             FROM videos
-                            ORDER BY likes DESC""")
+                            ORDER BY likes_count DESC""")
         df = pd.DataFrame(mycursor.fetchall(),columns=mycursor.column_names)
         st.write(df)
          
     elif questions == '7. What is the total number of views for each channel, and what are their corresponding channel names?':
-        mycursor.execute("""SELECT channel_name AS Channel_Name, views AS Views
+        mycursor.execute("""SELECT channel_name AS Channel_Name, channel_views AS Views
                             FROM channels
                             ORDER BY views DESC""")
         df = pd.DataFrame(mycursor.fetchall(),columns=mycursor.column_names)
@@ -404,26 +404,8 @@ if selected == "View":
         
     elif questions == '9. What is the average duration of all videos in each channel, and what are their corresponding channel names?':
         mycursor.execute("""SELECT channel_name, 
-                        SUM(duration_sec) / COUNT(*) AS average_duration
-                        FROM (
-                            SELECT channel_name, 
-                            CASE
-                                WHEN duration REGEXP '^PT[0-9]+H[0-9]+M[0-9]+S$' THEN 
-                                TIME_TO_SEC(CONCAT(
-                                SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'H', 1), 'T', -1), ':',
-                            SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'M', 1), 'H', -1), ':',
-                            SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'S', 1), 'M', -1)
-                            ))
-                                WHEN duration REGEXP '^PT[0-9]+M[0-9]+S$' THEN 
-                                TIME_TO_SEC(CONCAT(
-                                '0:', SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'M', 1), 'T', -1), ':',
-                                SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'S', 1), 'M', -1)
-                            ))
-                                WHEN duration REGEXP '^PT[0-9]+S$' THEN 
-                                TIME_TO_SEC(CONCAT('0:0:', SUBSTRING_INDEX(SUBSTRING_INDEX(duration, 'S', 1), 'T', -1)))
-                                END AS duration_sec
+                        AVG(TIME_TO_SEC(duration)) AS average_duration
                         FROM videos
-                        ) AS subquery
                         GROUP BY channel_name""")
         df = pd.DataFrame(mycursor.fetchall(),columns=mycursor.column_names
                           )
@@ -433,7 +415,7 @@ if selected == "View":
 
         
     elif questions == '10. Which videos have the highest number of comments, and what are their corresponding channel names?':
-        mycursor.execute("""SELECT channel_name AS Channel_Name,video_id AS Video_ID,comments AS Comments
+        mycursor.execute("""SELECT channel_name AS Channel_Name,video_id AS Video_ID,comment_count AS Comments
                             FROM videos
                             ORDER BY comments DESC
                             LIMIT 10""")
